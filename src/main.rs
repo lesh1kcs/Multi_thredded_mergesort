@@ -1,3 +1,4 @@
+use std::time::Instant;
 mod sorting {
     use rand::Rng;
     use std::sync::{Arc, Mutex};
@@ -89,9 +90,10 @@ mod sorting {
 }
 
 fn main() {
-    let my_array = sorting::generate_random_array(80);
-    println!("Unsorted array: {:?}", my_array);
+    let my_array = sorting::generate_random_array(1000000);
     let max_depth = 4; // Set the maximum depth for creating new threads (2^4 = 16 threads)
-    let sorted_array = sorting::merge_sort(my_array, max_depth, 0);
-    println!("Sorted array: {:?}", sorted_array);
+    let start = Instant::now();
+    let _sorted_array = sorting::merge_sort(my_array, max_depth, 0);
+    let duration = start.elapsed();
+    println!("Time taken to sort the array: {} ms", duration.as_millis());
 }
