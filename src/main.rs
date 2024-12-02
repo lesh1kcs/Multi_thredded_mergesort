@@ -39,7 +39,7 @@ mod sorting {
         result
     }
 
-    pub fn merge_sort(vec: Vec<u64>) -> Vec<u64> {
+    pub fn merge_sort(vec: Vec<u64>, max_depth: usize, current_depth: usize) -> Vec<u64> {
         if vec.len() <= 1 {
             return vec;
         }
@@ -48,6 +48,13 @@ mod sorting {
         let left = vec[..mid].to_vec();
         let right = vec[mid..].to_vec();
 
+        if current_depth >= max_depth {
+            // If the current depth is greater than or equal to max_depth, sort sequentially
+            let left_sorted = merge_sort(left, max_depth, current_depth + 1);
+            let right_sorted = merge_sort(right, max_depth, current_depth + 1);
+            return merge(left_sorted, right_sorted);
+        }
+
         let left_sorted = Arc::new(Mutex::new(Vec::new()));
         let right_sorted = Arc::new(Mutex::new(Vec::new()));
 
@@ -55,13 +62,13 @@ mod sorting {
         let right_sorted_clone = Arc::clone(&right_sorted);
 
         let left_handle = thread::spawn(move || {
-            let sorted = merge_sort(left);
+            let sorted = merge_sort(left, max_depth, current_depth + 1);
             let mut left_sorted = left_sorted_clone.lock().unwrap();
             *left_sorted = sorted;
         });
 
         let right_handle = thread::spawn(move || {
-            let sorted = merge_sort(right);
+            let sorted = merge_sort(right, max_depth, current_depth + 1);
             let mut right_sorted = right_sorted_clone.lock().unwrap();
             *right_sorted = sorted;
         });
@@ -84,6 +91,7 @@ mod sorting {
 fn main() {
     let my_array = sorting::generate_random_array(80);
     println!("Unsorted array: {:?}", my_array);
-    let sorted_array = sorting::merge_sort(my_array);
+    let max_depth = 4; // Set the maximum depth for creating new threads (2^4 = 16 threads)
+    let sorted_array = sorting::merge_sort(my_array, max_depth, 0);
     println!("Sorted array: {:?}", sorted_array);
 }
